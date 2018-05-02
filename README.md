@@ -12,6 +12,9 @@ Used to (potentially) forecast sms spend for FxA.
 
 ## Usage Example
 Definitely liable to change, but as of now:
+`python forecast_sms.py [datafile.json] [hours_out_to_predict]`
+
+e.g.
 
 `python forecast_sms.py sms-spend.json 10`
 
