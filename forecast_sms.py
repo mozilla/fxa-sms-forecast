@@ -7,6 +7,9 @@ from collections import namedtuple
 from scipy.optimize import fmin_l_bfgs_b
 from datetime import timedelta
 
+# many functions below taken from the seasonal example script
+# https://github.com/welch/seasonal/blob/master/examples/hw.py
+
 HWState = namedtuple('HWState', 't level trend seasons')
 HWParams = namedtuple('HWParams', 'alpha beta gamma')
 
