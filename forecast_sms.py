@@ -3,6 +3,8 @@ import numpy as np
 import warnings
 import itertools
 import statsmodels.api as sm
+from tqdm import tqdm
+from tabulate import tabulate
 from sys import stderr, argv
 
 def read_data(fn):
@@ -27,7 +29,7 @@ def set_grid(pu=(1,2),du=(1,2),qu=(0,2)):
 def grid_search(d, pdq, seasonal_pdq):
     warnings.filterwarnings("ignore")
     vals = []
-    for param in pdq:
+    for param in tqdm(pdq):
         for param_seasonal in seasonal_pdq:
             try:
                 mod = sm.tsa.statespace.SARIMAX(d.y_diff,
@@ -73,7 +75,6 @@ if use_grid != 0:
 else:
     best_params = pd.DataFrame({'params':[(1,1,2)],'seasonal_params':[(1,1,2,24)]})
 
-print("using these parameters: {}".format(best_params))
 last_value = d['Average'][-1:].values[0]
 mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                 order=best_params.params.values[0],
@@ -82,6 +83,13 @@ mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                 enforce_invertibility=False)
 
 results = mod.fit(disp=0)
+try:
+    _ = best_params.aic
+except:
+    best_params['AIC'] = results.aic
+
+print("Using these model parameters:\n {}".format(tabulate(best_params,headers='keys',tablefmt='psql')))
+
 preds = get_forecast(results, forecast_length)
 preds['lower_total'] = preds['lower y_diff'].cumsum() + last_value
 preds['upper_total'] = preds['upper y_diff'].cumsum() + last_value

@@ -7,18 +7,22 @@ Used to (potentially) forecast sms spend for FxA.
 * These python libs (`pip install`):
   * pandas
   * numpy
-  * scipy
-  * [seasonal](https://github.com/welch/seasonal/)
+  * statsmodels
+  * for console print-formatting only: tqdm, tabulate
 
 ## Usage Example
 Definitely liable to change, but as of now:
-`python forecast_sms.py [datafile.json] [hours_out_to_predict]`
+`python forecast_sms.py [datafile.json] [days_out_to_predict] [q_upper_limit]`
 
 e.g.
 
-`python forecast_sms.py sms-spend.json 10`
+`python forecast_sms.py sms-spend.json 7 0`
 
-where `10` is how  many **hours** after the last hour in your data to predict out. Obviously predictions will be worse the further out you try to predict. If you don't include the hours it will spit out 24 by default.
+where `7` is how  many **days** after the last hour in your data to predict out. Predictions that are generated are hour by hour. Obviously predictions will be worse the further out you try to predict. If you don't include the hours it will spit out 24 by default.
+
+The last optional parameter controls whether a search is done for better model parameters. The larger the number the more it will search, with numbers > 10 taking a long time. If the this parameter is 0 or omitted, a pre-defined set of parameters that I've found to to work decently will be used instead.
+
+I suggest trying the default parameters first, then if need be setting the last parameter to 5 and see if the AIC improves (lower the better).
 
 ![screenshot](sms_predict_screenshot.png)
 
