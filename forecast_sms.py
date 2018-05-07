@@ -155,19 +155,24 @@ def get_forecast(data, nsteps=24):
         preds[i] = forecast(ls,i)
     return(preds)
 
+def read_data(fn):
+    d = pd.read_json(fn)
+    d = d.Datapoints.apply(pd.Series)
+    d['Timestamp'] = pd.to_datetime(d.Timestamp)
+    d = d.sort_values('Timestamp')
+    d = d.drop(['Unit'],axis = 1)
+    d = d.reset_index()
+    d = d.set_index(d.Timestamp)
+    d['y_diff'] = d.Average.diff()
+    return(d)
+
 data_fn = argv[1]
 if len(argv) == 3:
     forecast_length = int(argv[2])
 else:
     forecast_length = 24
 
-
-d = pd.read_json(data_fn)
-d = d.Datapoints.apply(pd.Series)
-d['Timestamp'] = pd.to_datetime(d.Timestamp)
-d = d.sort_values('Timestamp')
-d = d.drop(['Unit'],axis = 1)
-d = d.reset_index()
+d = read_data(data_fn)
 
 last_hour = d.Timestamp.iloc[-1]
 fc = get_forecast(d.Average, forecast_length)
