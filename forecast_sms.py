@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
 import seasonal
-from sys import stderr, argv
+import matplotlib.pyplot as plt
+import warnings
+import itertools
+import statsmodels.api as sm
+from sys import stderr
 from copy import deepcopy
 from collections import namedtuple
 from scipy.optimize import fmin_l_bfgs_b
