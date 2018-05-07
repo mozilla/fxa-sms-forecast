@@ -16,8 +16,10 @@ def read_data(fn):
     d['y_diff'] = d.Average.diff()
     return(d)
 
-def set_grid(upper_bound=2):
-    p = d = q = range(0, upper_bound)
+def set_grid(pu=(1,2),du=(1,2),qu=(0,2)):
+    p = range(*pu)
+    d = range(*du)
+    q = range(*qu)
     pdq = list(itertools.product(p, d, q))
     seasonal_pdq = [(x[0], x[1], x[2], 24) for x in list(itertools.product(p, d, q))]
     return pdq, seasonal_pdq
@@ -25,11 +27,8 @@ def set_grid(upper_bound=2):
 def grid_search(d, pdq, seasonal_pdq):
     warnings.filterwarnings("ignore")
     vals = []
-    counter = 0
     for param in pdq:
         for param_seasonal in seasonal_pdq:
-            if counter % 10 == 1:
-                print(counter)
             try:
                 mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                                 order=param,
@@ -37,11 +36,10 @@ def grid_search(d, pdq, seasonal_pdq):
                                                 enforce_stationarity=False,
                                                 enforce_invertibility=False)
 
-                results = mod.fit()
+                results = mod.fit(disp=0)
                 vals.append([param,param_seasonal,results.aic])
             except:
                 continue
-            counter += 1
     ret = pd.DataFrame(vals,columns=['params','seasonal_params','AIC'])
     return(ret)
 
@@ -65,15 +63,17 @@ try:
 except:
     use_grid = 0
 
+d = read_data(data_fn)
+
 if use_grid != 0:
-    pdq, seasonal_pdq = set_grid(upper_bound=use_grid)
+    pdq, seasonal_pdq = set_grid(qu=(0,use_grid))
     grid = grid_search(d,pdq,seasonal_pdq)
     grid = pd.DataFrame(grid,columns=['params','seasonal_params','AIC'])
     best_params = grid[grid['AIC'] == grid.AIC.min()]
 else:
     best_params = pd.DataFrame({'params':[(1,1,2)],'seasonal_params':[(1,1,2,24)]})
 
-d = read_data(data_fn)
+print("using these parameters: {}".format(best_params))
 last_value = d['Average'][-1:].values[0]
 mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                 order=best_params.params.values[0],
@@ -81,9 +81,10 @@ mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                 enforce_stationarity=False,
                                 enforce_invertibility=False)
 
-results = mod.fit()
+results = mod.fit(disp=0)
 preds = get_forecast(results, forecast_length)
 preds['lower_total'] = preds['lower y_diff'].cumsum() + last_value
 preds['upper_total'] = preds['upper y_diff'].cumsum() + last_value
 preds['mean_total'] = preds['mean_pred'].cumsum() + last_value
+preds.columns = ['spent_in_hour_lower_est','spent_in_hour_upper_est','spent_in_hour_mean_est','lower_cum_total','upper_cum_total','mean_cum_total']
 print(preds)
