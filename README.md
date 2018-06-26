@@ -24,14 +24,25 @@ The last optional parameter controls whether a search is done for better model p
 
 I suggest trying the default parameters first, then if need be setting the last parameter to 5 and see if the AIC improves (lower the better).
 
-![screenshot](sms_predict_screenshot.png)
-
 Tested with some test data that's not included in this repo.
 
-## Data Format
+## Data Input Format
 
 **Currently data must be generated with the following command**:
 
 ```aws --profile prod cloudwatch get-metric-statistics --namespace 'AWS/SNS' --metric-name 'SMSMonthToDateSpentUSD' --start-time '2018-04-01T00:00:00Z' --end-time '2018-04-17T00:00:00Z' --period '3600' --statistics 'Average' > sms-spend.json```
 
 Just sub out the timestamps for the date range you want.
+
+## Data Output Format (Predictions)
+
+Currently, the script prints to the console 6 columns of data in the following order (each row is labeled with the timestamp for the hour that's being predicted):
+
+1. `spent_in_hour_lower_est` the lower bound on the estimate for how much money is predicted to be spent in that hour
+2. `spent_in_hour_upper_est` the upper bound on the estimate for how much money is predicted to be spent in that hour
+3. `spent_in_hour_mean_est` the mean (i.e., best guess) estimate for how much money is predicted to be spent in that hour
+4. `lower_cum_total` the lower bound on the estimate for the total (cumulative) amount spent up to and including that hour
+5. `upper_cum_total` the upper bound on the estimate for the total (cumulative) amount spent up to and including that hour
+6. `mean_cum_total` the mean (i.e. best guess) estimate for the total (cumulative) amount spent up to and including that hour
+
+The upper and lower bounds should be considered to be 95% confidence intervals, i.e. "we are 95% confident that the actual value will be somewhere between the lower and upper bound".
