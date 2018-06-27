@@ -1,21 +1,53 @@
+import boto3
 import pandas as pd
 import numpy as np
+import os
 import warnings
 import itertools
 import statsmodels.api as sm
+from datetime import datetime
 from tqdm import tqdm
 from tabulate import tabulate
 from sys import stderr, argv
 
-def read_data(fn):
-    d = pd.read_json(fn)
-    d = d.Datapoints.apply(pd.Series)
+SECONDS_PER_HOUR = 60 * 60
+
+AWS_REGION = os.environ["AWS_REGION"]
+AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
+AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
+
+cloudwatch = boto3.client("cloudwatch",
+                          region_name=AWS_REGION,
+                          aws_access_key_id=AWS_ACCESS_KEY,
+                          aws_secret_access_key=AWS_SECRET_KEY)
+
+def get_data():
+    now = datetime.utcnow()
+    start_of_hour = now.replace(minute=0, second=0, microsecond=0)
+    start_of_month = start_of_hour.replace(day=1, hour=0).isoformat()
+    start_of_hour = start_of_hour.isoformat()
+    print "Fetching SMSMonthToDateSpentUSD:", start_of_month, "-", start_of_hour
+    return cloudwatch.get_metric_statistics(
+        Namespace="AWS/SNS",
+        MetricName="SMSMonthToDateSpentUSD",
+        StartTime=start_of_month,
+        EndTime=start_of_hour,
+        Period=SECONDS_PER_HOUR,
+        Statistics=["Maximum"]
+    )
+
+def prepare_data(data):
+    print data
+    # TODO: This may be (probably is) wrong, I need to test it against real datapoints
+    d = pd.Series(data['Datapoints'])
+    #d = pd.read_json(fn)
+    #d = d.Datapoints.apply(pd.Series)
     d['Timestamp'] = pd.to_datetime(d.Timestamp)
     d = d.sort_values('Timestamp')
     d = d.drop(['Unit'],axis = 1)
     d = d.reset_index()
     d = d.set_index(d.Timestamp)
-    d['y_diff'] = d.Average.diff()
+    d['y_diff'] = d.Maximum.diff()
     return(d)
 
 def set_grid(pu=(1,2),du=(1,2),qu=(0,2)):
@@ -53,19 +85,17 @@ def get_forecast(results, forecast_length):
     pred_ci['mean_pred'] = pred_mean
     return pred_ci
 
-data_fn = argv[1]
-
 try:
-    forecast_length = int(argv[2])
+    forecast_length = int(argv[1])
 except:
     forecast_length = 1
 
 try:
-    use_grid = int(argv[3])
+    use_grid = int(argv[2])
 except:
     use_grid = 0
 
-d = read_data(data_fn)
+d = prepare_data(get_data())
 
 if use_grid != 0:
     pdq, seasonal_pdq = set_grid(qu=(0,use_grid))
@@ -75,7 +105,7 @@ if use_grid != 0:
 else:
     best_params = pd.DataFrame({'params':[(1,1,2)],'seasonal_params':[(1,1,2,24)]})
 
-last_value = d['Average'][-1:].values[0]
+last_value = d['Maximum'][-1:].values[0]
 mod = sm.tsa.statespace.SARIMAX(d.y_diff,
                                 order=best_params.params.values[0],
                                 seasonal_order=best_params.seasonal_params.values[0],

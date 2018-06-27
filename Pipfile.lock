@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dc595efbaf5955556307cda5e54fb4a2d4c05e0106fc4ef26c8d31337380c528"
+            "sha256": "e68e126935b2b7735fa316399cff97442f748a22f889f6f333e3258da1d13e5f"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -26,6 +26,42 @@
         ]
     },
     "default": {
+        "boto3": {
+            "hashes": [
+                "sha256:f3514269f6f5720e53d8fd23ea8605267161eb56ff8369f9cdacb5d16c900e7d",
+                "sha256:40e7d256edcce47f56be809750c0703a3bc5298c20dcf78c846f3f9904eee937"
+            ],
+            "version": "==1.7.47"
+        },
+        "botocore": {
+            "hashes": [
+                "sha256:90caad5ec882e333456025ea24f3dcc938b0c2abff44ec3d881cef8934ef408f",
+                "sha256:6752f50854b8a70cc8fab89078dbb130399cea2982a53041453fda2992c23163"
+            ],
+            "version": "==1.10.47"
+        },
+        "docutils": {
+            "hashes": [
+                "sha256:7a4bd47eaf6596e1295ecb11361139febe29b084a87bf005bf899f9a42edc3c6",
+                "sha256:02aec4bd92ab067f6ff27a38a38a41173bf01bed8f89157768c1573f53e474a6",
+                "sha256:51e64ef2ebfb29cae1faa133b3710143496eca21c530f3f71424d77687764274"
+            ],
+            "version": "==0.14"
+        },
+        "futures": {
+            "hashes": [
+                "sha256:ec0a6cb848cc212002b9828c3e34c675e0c9ff6741dc445cab6fdd4e1085d1f1",
+                "sha256:9ec02aa7d674acb8618afb127e27fde7fc68994c0437ad759fa094a574adb265"
+            ],
+            "version": "==3.2.0"
+        },
+        "jmespath": {
+            "hashes": [
+                "sha256:f11b4461f425740a1d908e9a3f7365c3d2e569f6ca68a2ff8bc5bcd9676edd63",
+                "sha256:6a81d4c9aa62caf061cb517b4d9ad1dd300374cd4706997aff9cd6aedd61fc64"
+            ],
+            "version": "==0.9.3"
+        },
         "numpy": {
             "hashes": [
                 "sha256:e1864a4e9f93ddb2dc6b62ccc2ec1f8250ff4ac0d3d7a15c8985dd4e1fbd6418",
@@ -94,6 +130,13 @@
                 "sha256:c06425302f2cf668f1bba7a0a03f3c1d34d4ebeef2c72003da308b3947c7f749"
             ],
             "version": "==2018.4"
+        },
+        "s3transfer": {
+            "hashes": [
+                "sha256:c7a9ec356982d5e9ab2d4b46391a7d6a950e2b04c472419f5fdec70cc0ada72f",
+                "sha256:90dc18e028989c609146e241ea153250be451e05ecc0c2832565231dacdf59c1"
+            ],
+            "version": "==0.1.13"
         },
         "scipy": {
             "hashes": [
