@@ -13,17 +13,15 @@ Used to (potentially) forecast sms spend for FxA.
 
 ## Usage Example
 Definitely liable to change, but as of now:
-`python forecast_sms.py [days_out_to_predict] [q_upper_limit]`
+`python forecast_sms.py [q_upper_limit]`
 
 e.g.
 
-`python forecast_sms.py 7 0`
+`python forecast_sms.py 0`
 
-where `7` is how  many **days** after the last hour in your data to predict out. Predictions that are generated are hour by hour. Obviously predictions will be worse the further out you try to predict. If you don't include the hours it will spit out 24 by default.
+An optional parameter controls whether a search is done for better model parameters. The larger the number the more it will search, with numbers > 10 taking a long time. If the this parameter is 0 or omitted, a pre-defined set of parameters that I've found to to work decently will be used instead.
 
-The last optional parameter controls whether a search is done for better model parameters. The larger the number the more it will search, with numbers > 10 taking a long time. If the this parameter is 0 or omitted, a pre-defined set of parameters that I've found to to work decently will be used instead.
-
-I suggest trying the default parameters first, then if need be setting the last parameter to 5 and see if the AIC improves (lower the better).
+I suggest trying without any parameter first, then if need be setting the last parameter to 5 and see if the AIC improves (lower the better).
 
 ## Data Output Format (Predictions)
 

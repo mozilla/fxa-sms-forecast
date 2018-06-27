@@ -8,25 +8,29 @@ import statsmodels.api as sm
 from datetime import datetime
 from tqdm import tqdm
 from tabulate import tabulate
-from sys import stderr, argv
+from sys import argv, exit, stderr
 
 SECONDS_PER_HOUR = 60 * 60
+FORECAST_LENGTH = 7
 
 AWS_REGION = os.environ["AWS_REGION"]
 AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
 AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 
-cloudwatch = boto3.client("cloudwatch",
-                          region_name=AWS_REGION,
-                          aws_access_key_id=AWS_ACCESS_KEY,
-                          aws_secret_access_key=AWS_SECRET_KEY)
+NOW = datetime.utcnow()
+
+def init_client(name):
+    return boto3.client(name,
+                        region_name=AWS_REGION,
+                        aws_access_key_id=AWS_ACCESS_KEY,
+                        aws_secret_access_key=AWS_SECRET_KEY)
 
 def get_data():
-    now = datetime.utcnow()
-    start_of_hour = now.replace(minute=0, second=0, microsecond=0)
+    start_of_hour = NOW.replace(minute=0, second=0, microsecond=0)
     start_of_month = start_of_hour.replace(day=1, hour=0).isoformat()
     start_of_hour = start_of_hour.isoformat()
     print "Fetching SMSMonthToDateSpentUSD:", start_of_month, "-", start_of_hour
+    cloudwatch = init_client("cloudwatch")
     return cloudwatch.get_metric_statistics(
         Namespace="AWS/SNS",
         MetricName="SMSMonthToDateSpentUSD",
@@ -77,21 +81,46 @@ def grid_search(d, pdq, seasonal_pdq):
     ret = pd.DataFrame(vals,columns=['params','seasonal_params','AIC'])
     return(ret)
 
-def get_forecast(results, forecast_length):
-    steps = forecast_length * 24
+def get_forecast(results):
+    steps = FORECAST_LENGTH * 24
     pred_uc = results.get_forecast(steps=steps)
     pred_ci = pred_uc.conf_int()
     pred_mean = pred_uc.predicted_mean
     pred_ci['mean_pred'] = pred_mean
     return pred_ci
 
-try:
-    forecast_length = int(argv[1])
-except:
-    forecast_length = 1
+def get_budget():
+    sns = init_client("sns")
+    result = sns.get_sms_attributes(attributes=["MonthlySpendLimit"])
+    return float(result["attributes"]["MonthlySpendLimit"])
+
+def raise_ticket(new_budget):
+    support = init_client("support")
+    support.create_case(
+        language="en",
+        issueType="technical",
+        serviceCode="TODO: DescribeServices",
+        categoryCode="TODO: DescribeServices",
+        severityCode="TODO: DescribeSeverityLevels",
+        ccEmailAddresses="fxa-core@mozilla.com",
+        subject="TEST CASE, please ignore",
+        communicationBody="""Limit increase request 1 Service: SNS Text Messaging
+Resource Type: General Limits
+Limit name: Account Spend Threshold Increase for SMS
+New limit value: {new_budget}
+------------
+Use case description: Based on current usage, it's forecast that we'll exceed our threshold for this month. Please see case #4859506511 for implementation details of how we're using SMS. Nothing has changed since then except more users are signing in to Firefox Accounts and asking to install Firefox on a mobile device.
+Link to site or app which will be sending SMS: https://accounts.firefox.com
+Type of messages: Promotional
+Targeted Countries: AT, AU, BE, CA, DE, DK, ES, FR, GB, IT, LU, NL, PT, RO, US
+""".format(new_budget=new_budget))
+
+if NOW.day < 3 or NOW.day > 24:
+    # Exit gracefully if it's near the start or end of the month
+    exit(0)
 
 try:
-    use_grid = int(argv[2])
+    use_grid = int(argv[1])
 except:
     use_grid = 0
 
@@ -120,9 +149,15 @@ except:
 
 print("Using these model parameters:\n {}".format(tabulate(best_params,headers='keys',tablefmt='psql')))
 
-preds = get_forecast(results, forecast_length)
+preds = get_forecast(results)
 preds['lower_total'] = preds['lower y_diff'].cumsum() + last_value
 preds['upper_total'] = preds['upper y_diff'].cumsum() + last_value
 preds['mean_total'] = preds['mean_pred'].cumsum() + last_value
 preds.columns = ['spent_in_hour_lower_est','spent_in_hour_upper_est','spent_in_hour_mean_est','lower_cum_total','upper_cum_total','mean_cum_total']
 print(preds)
+
+budget = get_budget()
+
+if preds['upper_total'] > budget:
+    new_budget = preds['upper_total'] + 1000 - preds['upper_total'] % 1000
+    raise_ticket(new_budget)
