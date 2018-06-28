@@ -1,4 +1,5 @@
 import boto3
+import calendar
 import pandas as pd
 import numpy as np
 import os
@@ -18,6 +19,11 @@ AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
 AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 
 NOW = datetime.utcnow()
+
+def is_near_month_end():
+    # Don't forecast unless there's sufficient time remaining in the month
+    last_day = calendar.monthrange(NOW.year, NOW.month)[1]
+    return NOW.day >= last_day - FORECAST_LENGTH
 
 def init_client(name):
     return boto3.client(name,
@@ -115,7 +121,7 @@ Type of messages: Promotional
 Targeted Countries: AT, AU, BE, CA, DE, DK, ES, FR, GB, IT, LU, NL, PT, RO, US
 """.format(new_budget=new_budget))
 
-if NOW.day < 3 or NOW.day > 24:
+if NOW.day < 3 or is_near_month_end():
     # Exit gracefully if it's near the start or end of the month
     exit(0)
 
