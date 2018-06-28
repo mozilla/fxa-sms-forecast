@@ -35,3 +35,43 @@ Currently, the script prints to the console 6 columns of data in the following o
 6. `mean_cum_total` the mean (i.e. best guess) estimate for the total (cumulative) amount spent up to and including that hour
 
 The upper and lower bounds should be considered to be 95% confidence intervals, i.e. "we are 95% confident that the actual value will be somewhere between the lower and upper bound".
+
+## Deploying to AWS Lambda
+
+It turns out this is hard and annoying.
+Firstly,
+the zip file including all the dependencies
+is sufficiently large
+that it can only be uploaded via S3.
+Secondly,
+the `pandas` dependency
+must be compiled on AWS Linux
+in order for it to be used in Lambda.
+Yay for serverless architecture!
+
+Because I'm not competent with Python,
+I'm recording the steps I took
+to build the deployment package.
+They're cobbled together from the following sources:
+
+* https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example-deployment-pkg.html#with-s3-example-deployment-pkg-python
+* https://stackoverflow.com/questions/43877692/pandas-in-aws-lambda-gives-numpy-error
+* https://stackoverflow.com/questions/36054976/pandas-aws-lambda
+
+```
+sudo yum install -y gcc zlib zlib-devel openssl openssl-devel
+wget https://www.python.org/ftp/python/3.6.6/Python-3.6.6.tgz
+tar -xvf Python-3.6.6.tgz
+cd Python-3.6.6
+./configure
+make
+sudo make install
+/usr/local/bin/virtualenv ~/forecast_sms
+source ~/forecast_sms/bin/activate
+pip install boto3 numpy pandas scipy statsmodels tabulate tqdm
+cd ~/forecast_sms/lib/python3.6/site-packages
+zip -r9 ~/fxa-sms-forecast.zip .
+cd ../../..
+zip -g ~/fxa-sms-forecast.zip forecast_sms.py
+aws s3 cp ~/fxa-sms-forecast.zip s3://fxa-forecast-sms/
+```
