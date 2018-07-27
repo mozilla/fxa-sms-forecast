@@ -128,7 +128,7 @@ def main():
     now = datetime.utcnow()
     forecast_length = from_env_or_default("FORECAST_LENGTH", 7)
 
-    if now.day < 3 or is_near_month_end(now, forecast_length):
+    if now.day < forecast_length or is_near_month_end(now, forecast_length):
         # Exit gracefully if it's near the start or end of the month
         return
 
