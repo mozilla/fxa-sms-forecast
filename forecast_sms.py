@@ -51,10 +51,7 @@ def get_data(now):
 
 def prepare_data(data):
     print(data)
-    # TODO: This may be (probably is) wrong, I need to test it against real datapoints
-    d = pd.Series(data['Datapoints'])
-    #d = pd.read_json(fn)
-    #d = d.Datapoints.apply(pd.Series)
+    d = pd.DataFrame(data['Datapoints'])
     d['Timestamp'] = pd.to_datetime(d.Timestamp)
     d = d.sort_values('Timestamp')
     d = d.drop(['Unit'],axis = 1)
