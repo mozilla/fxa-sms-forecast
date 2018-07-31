@@ -190,15 +190,17 @@ def main():
     preds['lower_total'] = preds['lower y_diff'].cumsum() + last_value
     preds['upper_total'] = preds['upper y_diff'].cumsum() + last_value
     preds['mean_total'] = preds['mean_pred'].cumsum() + last_value
-    preds.columns = ['spent_in_hour_lower_est','spent_in_hour_upper_est','spent_in_hour_mean_est','lower_cum_total','upper_cum_total','mean_cum_total']
-    print(preds)
 
+    lower_total = preds['lower_total'][-1]
+    upper_total = preds['upper_total'][-1]
+    mean_total = preds['mean_total'][-1]
     budget = get_budget()
+    print(upper_total, lower_total, mean_total, budget)
 
-    if preds['upper_cum_total'] > budget:
-        new_budget = preds['upper_cum_total'] + 1000 - preds['upper_cum_total'] % 1000
+    if upper_total > budget:
+        new_budget = upper_total + 1000 - upper_total % 1000
         #raise_ticket(new_budget)
-        send_email(preds['lower_cum_total'], preds['upper_cum_total'], preds['mean_cum_total'], budget, new_budget)
+        send_email(lower_total, upper_total, mean_total, budget, new_budget)
 
 if __name__ == "__main__":
     main()
