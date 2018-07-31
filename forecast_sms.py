@@ -198,7 +198,7 @@ def main():
     print(upper_total, lower_total, mean_total, budget)
 
     if upper_total > budget:
-        new_budget = upper_total + 1000 - upper_total % 1000
+        new_budget = upper_total + 1000 - (upper_total % 1000)
         #raise_ticket(new_budget)
         send_email(lower_total, upper_total, mean_total, budget, new_budget)
 
