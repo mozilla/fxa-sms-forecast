@@ -122,24 +122,31 @@ Type of messages: Promotional
 Targeted Countries: AT, AU, BE, CA, DE, DK, ES, FR, GB, IT, LU, NL, PT, RO, US
 """.format(new_budget=new_budget))
 
-def send_email(lower, upper, mean, current, recommended):
+def send_email(forecast_length, lower, upper, mean, current, recommended):
     ses = init_client("ses")
     ses.send_email(
-        Source="SMS budget forecast <sms@latest.dev.lcip.org>",
-        Destination={"ToAddresses": ["fxa-core@mozilla.com@"]},
+        Source="fxa-sms@latest.dev.lcip.org",
+        Destination={"ToAddresses": ["fxa-core@mozilla.com"]},
         Message={
             "Subject": {"Data": "SMS budget forecast"},
             "Body": {
-                "Text": """The SMS spend in prod is expected to exceed budget before the end of this month!
+                "Text": {
+                  "Data": """The FxA SMS spend in prod is expected to exceed budget within {forecast_length} days!
 
-lower forecast = {lower}
-upper forecast = {upper}
-mean forecast = {mean}
-current budget = {current}
-recommended budget = {recommended}
+Lower forecast: {lower}
+Upper forecast: {upper}
+Mean forecast: {mean}
+
+Current budget: {current}
+Crude budget recommendation: {recommended}
 
 Cheerio!
-""".format(lower=lower, upper=upper, mean=mean, current=current, recommended=recommended)
+
+-- 
+This email was sent by a bot. Nobody will see your reply.
+https://github.com/irrationalagent/forecast_sms
+""".format(forecast_length=forecast_length, lower=lower, upper=upper, mean=mean, current=current, recommended=recommended)
+                }
             }
         }
     )
@@ -200,7 +207,7 @@ def main():
     if upper_total > budget:
         new_budget = upper_total + 1000 - (upper_total % 1000)
         #raise_ticket(new_budget)
-        send_email(lower_total, upper_total, mean_total, budget, new_budget)
+        send_email(forecast_length, lower_total, upper_total, mean_total, budget, new_budget)
 
 if __name__ == "__main__":
     main()
