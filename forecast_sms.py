@@ -195,10 +195,10 @@ def main():
 
     budget = get_budget()
 
-    if preds['upper_total'] > budget:
-        new_budget = preds['upper_total'] + 1000 - preds['upper_total'] % 1000
+    if preds['upper_cum_total'] > budget:
+        new_budget = preds['upper_cum_total'] + 1000 - preds['upper_cum_total'] % 1000
         #raise_ticket(new_budget)
-        send_email(preds['lower_total'], preds['upper_total'], preds['mean_total'], budget, new_budget)
+        send_email(preds['lower_cum_total'], preds['upper_cum_total'], preds['mean_cum_total'], budget, new_budget)
 
 if __name__ == "__main__":
     main()
