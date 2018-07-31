@@ -148,7 +148,14 @@ def main():
                                     enforce_stationarity=False,
                                     enforce_invertibility=False)
 
-    results = mod.fit(disp=0)
+    try:
+        results = mod.fit(disp=0)
+    except:
+        # We probably don't have enough datapoints for the model,
+        # abort for now and then try again next time
+        print("mod.fit failed, aborting")
+        return
+
     try:
         _ = best_params.aic
     except:
