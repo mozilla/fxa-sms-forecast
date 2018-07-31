@@ -50,7 +50,7 @@ def get_data(now):
     )
 
 def prepare_data(data):
-    print(data)
+    #print(data)
     d = pd.DataFrame(data['Datapoints'])
     d['Timestamp'] = pd.to_datetime(d.Timestamp)
     d = d.sort_values('Timestamp')
@@ -58,7 +58,8 @@ def prepare_data(data):
     d = d.reset_index()
     d = d.set_index(d.Timestamp)
     d['y_diff'] = d.Maximum.diff()
-    return(d)
+    print(d.head())
+    return d
 
 def set_grid(pu=(1,2),du=(1,2),qu=(0,2)):
     p = range(*pu)
