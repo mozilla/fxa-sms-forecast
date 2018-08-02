@@ -122,10 +122,10 @@ Type of messages: Promotional
 Targeted Countries: AT, AU, BE, CA, DE, DK, ES, FR, GB, IT, LU, NL, PT, RO, US
 """.format(new_budget=new_budget))
 
-def send_email(env, region, forecast_length, lower, upper, mean, current, recommended):
+def send_email(from_address, env, region, forecast_length, lower, upper, mean, current, recommended):
     ses = init_client("ses")
     ses.send_email(
-        Source="fxa-sms@latest.dev.lcip.org",
+        Source=from_address,
         Destination={"ToAddresses": ["fxa-core@mozilla.com"]},
         Message={
             "Subject": {"Data": "SMS budget forecast"},
@@ -207,7 +207,7 @@ def main():
     if upper_total > budget:
         new_budget = upper_total + 1000 - (upper_total % 1000)
         #raise_ticket(new_budget)
-        send_email(from_env_or_default("ENV", "dev"), AWS_REGION, forecast_length, lower_total, upper_total, mean_total, budget, new_budget)
+        send_email(from_env_or_default("FROM_ADDRESS", "fxa-sms@latest.dev.lcip.org"), from_env_or_default("ENV", "dev"), AWS_REGION, forecast_length, lower_total, upper_total, mean_total, budget, new_budget)
 
 if __name__ == "__main__":
     main()
