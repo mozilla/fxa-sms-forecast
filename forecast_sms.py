@@ -145,7 +145,8 @@ Cheerio!
 -- 
 This email was sent by a bot. Nobody will see your reply.
 https://github.com/mozilla/fxa-sms-forecast
-""".format(env=env, region=region, forecast_length=forecast_length, lower=lower, upper=upper, mean=mean, current=current, recommended=recommended)
+""".format(env=env, region=region, forecast_length=forecast_length, lower=lower,
+           upper=upper, mean=mean, current=current, recommended=recommended)
                 }
             }
         }
@@ -191,7 +192,7 @@ def main():
     except:
         best_params['AIC'] = results.aic
 
-    print("Using these model parameters:\n {}".format(tabulate(best_params,headers='keys',tablefmt='psql')))
+    print("model parameters:\n{}".format(tabulate(best_params, headers='keys', tablefmt='psql')))
 
     preds = get_forecast(results, forecast_length)
     preds['lower_total'] = preds['lower y_diff'].cumsum() + last_value
@@ -207,7 +208,15 @@ def main():
     if upper_total > budget:
         new_budget = upper_total + 1000 - (upper_total % 1000)
         #raise_ticket(new_budget)
-        send_email(from_env_or_default("FROM_ADDRESS", "fxa-sms@latest.dev.lcip.org"), from_env_or_default("ENV", "dev"), AWS_REGION, forecast_length, lower_total, upper_total, mean_total, budget, new_budget)
+        send_email(from_env_or_default("FROM_ADDRESS", "fxa-sms@latest.dev.lcip.org"),
+                   from_env_or_default("ENV", "dev"),
+                   AWS_REGION,
+                   forecast_length,
+                   lower_total,
+                   upper_total,
+                   mean_total,
+                   budget,
+                   new_budget)
 
 if __name__ == "__main__":
     main()
