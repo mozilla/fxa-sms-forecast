@@ -1,0 +1,35 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build container
+          command: docker build -t fxa-sms-forecast .
+      - run:
+          name: Push to Dockerhub
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              DOCKER_TAG="latest"
+            fi
+
+            if [[ "${CIRCLE_BRANCH}" == feature* ]] || [[ "${CIRCLE_BRANCH}" == dockerpush* ]]; then
+              DOCKER_TAG="${CIRCLE_BRANCH}"
+            fi
+
+            if [ -n "${CIRCLE_TAG}" ]; then
+              DOCKER_TAG="$CIRCLE_TAG"
+            fi
+
+            if [ -n "${DOCKER_TAG}" ]; then
+              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+              echo ${DOCKER_REPO}:${DOCKER_TAG}
+              docker tag fxa-sms-forecast ${DOCKER_REPO}:${DOCKER_TAG}
+              docker images
+              docker push ${DOCKER_REPO}:${DOCKER_TAG}
+            fi
