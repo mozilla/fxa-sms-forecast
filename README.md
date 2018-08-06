@@ -29,6 +29,24 @@ python forecast_sms.py
 * `AWS_REGION`
 * `AWS_ACCESS_KEY`
 * `AWS_SECRET_KEY`
+* `ENV`
+  (optional):
+  The environment name
+  to be included in notification emails.
+  Defaults to `dev`.
+* `FORECAST_LENGTH`
+  (optional):
+  The number of days ahead
+  to project the forecast.
+  Defaults to `7`.
+* `FROM_ADDRESS`
+  (optional):
+  The from address for email notifications.
+  Defaults to `fxa-sms@latest.dev.lcip.org`.
+* `USE_GRID`
+  (optional):
+  Some kind of statistical magic number.
+  Defaults to `0`.
 
 ## Docker
 
