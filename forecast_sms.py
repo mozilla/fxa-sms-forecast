@@ -9,7 +9,6 @@ import statsmodels.api as sm
 from datetime import datetime
 from tqdm import tqdm
 from tabulate import tabulate
-from sys import argv, exit, stderr
 
 SECONDS_PER_HOUR = 60 * 60
 
