@@ -51,9 +51,4 @@ python forecast_sms.py
 ## Docker
 
 Container is built [in CircleCI](https://circleci.com/gh/mozilla/fxa-sms-forecast)
-and uploaded to DockerHub [here](https://hub.docker.com/r/philbooth/fxa-sms-forecast/).
-
-**TODO:
-@jbuck to update the DockerHub link
-when he's changed the build
-to upload to the mozilla DockerHub org.**
+and uploaded to DockerHub [here](https://hub.docker.com/r/mozilla/fxa-sms-forecast/).
