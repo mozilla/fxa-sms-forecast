@@ -13,14 +13,15 @@ from tabulate import tabulate
 SECONDS_PER_HOUR = 60 * 60
 
 AWS_REGION = os.environ["AWS_REGION"]
-AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
-AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 
 def from_env_or_default(variable_name, default_value):
     if variable_name in os.environ:
-        return int(os.environ[variable_name])
+        return os.environ[variable_name]
 
     return default_value
+
+AWS_ACCESS_KEY = from_env_or_default("AWS_ACCESS_KEY", None)
+AWS_SECRET_KEY = from_env_or_default("AWS_SECRET_KEY", None)
 
 def is_near_month_end(now, forecast_length):
     # Don't forecast unless there's sufficient time remaining in the month
@@ -153,7 +154,7 @@ https://github.com/mozilla/fxa-sms-forecast
 
 def main():
     now = datetime.utcnow()
-    forecast_length = from_env_or_default("FORECAST_LENGTH", 7)
+    forecast_length = int(from_env_or_default("FORECAST_LENGTH", 7))
 
     if now.day < forecast_length or is_near_month_end(now, forecast_length):
         # Exit gracefully if it's near the start or end of the month
@@ -161,7 +162,7 @@ def main():
 
     d = prepare_data(get_data(now))
 
-    use_grid = from_env_or_default("USE_GRID", 0)
+    use_grid = int(from_env_or_default("USE_GRID", 0))
 
     if use_grid != 0:
         pdq, seasonal_pdq = set_grid(qu=(0,use_grid))
