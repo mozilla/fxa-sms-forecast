@@ -122,7 +122,7 @@ Type of messages: Promotional
 Targeted Countries: AT, AU, BE, CA, DE, DK, ES, FR, GB, IT, LU, NL, PT, RO, US
 """.format(new_budget=new_budget))
 
-def send_email(from_address, env, region, forecast_length, lower, upper, mean, current, recommended):
+def send_email(from_address, env, region, forecast_length, mean, current, recommended, spend):
     ses = init_client("ses")
     ses.send_email(
         Source=from_address,
@@ -133,10 +133,9 @@ def send_email(from_address, env, region, forecast_length, lower, upper, mean, c
                 "Text": {
                   "Data": """The FxA SMS spend in {env}/{region} is expected to exceed budget within {forecast_length} days!
 
-Lower forecast: {lower}
-Upper forecast: {upper}
-Mean forecast: {mean}
+Forecasted total spend in 7 days: {mean}
 
+Current Spend: {spend}
 Current budget: {current}
 Crude budget recommendation: {recommended}
 
@@ -145,8 +144,7 @@ Cheerio!
 -- 
 This email was sent by a bot. Nobody will see your reply.
 https://github.com/mozilla/fxa-sms-forecast
-""".format(env=env, region=region, forecast_length=forecast_length, lower=lower,
-           upper=upper, mean=mean, current=current, recommended=recommended)
+""".format(env=env, region=region, forecast_length=forecast_length, mean=mean, current=current, recommended=recommended, spend=spend)
                 }
             }
         }
@@ -205,18 +203,17 @@ def main():
     budget = get_budget()
     print(upper_total, lower_total, mean_total, budget)
 
-    if upper_total > budget:
-        new_budget = upper_total + 1000 - (upper_total % 1000)
+    if mean_total > budget:
+        new_budget = mean_total + 1000 - (mean_total % 1000)
         #raise_ticket(new_budget)
         send_email(from_env_or_default("FROM_ADDRESS", "fxa-sms@latest.dev.lcip.org"),
                    from_env_or_default("ENV", "dev"),
                    AWS_REGION,
                    forecast_length,
-                   lower_total,
-                   upper_total,
                    mean_total,
                    budget,
-                   new_budget)
+                   new_budget,
+                   last_value)
 
 if __name__ == "__main__":
     main()
